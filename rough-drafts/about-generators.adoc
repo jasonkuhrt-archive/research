@@ -1,63 +1,120 @@
 # Exploring Generators from the ground up
+:toc: macro
 
-Generators are a new feature in JavaScript 2015.
+toc::[]
 
-Here is the `identity` function (a function that returns its argument).
+
+
+## Introduction 
+
+Generators allow users to program arbitrary function execution models. Whereas a typical function will always receive arguments as input and return a value as output  Generators allow the programmer to output as many or little values from a function as they wish with no requirements about when this should happen. Generators are generic enough to support modeling different kinds of problems such as asynchronous data flow, or lazy evaluation. Generators exist in several langauges including Python, Ruby, C# and JavaScript (as of 2015). A paper called "Yield: Mainstream Delimited Continuations" compares the semantics of various implementations.
+
+This essay focuses on the JavaScript implementation and its semantics.
+
+
+
+## From Functions
+
+### Meet the Generator Instance
+
+Here is one of the simplest possible functions, the `identity` function, a function that returns its argument:
 
 [source,js]
 ----
 function identity(x) {
   return x
 }
-
+----
+----
 identity('Apple')
+> Apple
 ----
-----
-Apple
-----
-
 
 A Generator (capitalized means to say a generator function that is a factory
 of generators) version of `identity` is different. It returns a constructed generator. This generator, as we will see, will also return the Generator's argument but only after a few procedures are executed.
 
 [source,js]
 ----
-function* GenIdentity(x) {
+function* IdentityGenerator(x) {
   return x
 }
 
-let generator = GenIdentity('Apple')
+let generator = IdentityGenerator('Apple')
 ----
-
 ----
 { _:
-   { _:
-      { next:
+   { _: <1>
+      { next: <2>
          { value: [Function: next],
            writable: false,
            enumerable: false,
            configurable: false },
-        throw:
+        throw: <2>
          { value: [Function: throw],
            writable: false,
            enumerable: false,
            configurable: false },
-        constructor:
+        constructor: <3>
          { value: [Function: GeneratorFunctionPrototype],
            writable: false,
            enumerable: false,
            configurable: true } } } }
 ----
 
-This is our generator created by our Generator. We learn several things here.
+We can learn Several things by observing the structure of a `generator`.
 
-- `generators` are instances of `GeneratorFunction`. We can therefore expect generator methods to be `this` sensitive (they are). We also now know that conceptually all `function* () {...}` are of type `GeneratorFunction` (in practice the best JavaScript lets us do is use `instanceof`).
-- `generator` API consists of two methods: `next` and `throw`.
-- It appears that the prototype chain goes two levels down, but I am not sure why.
+<1> generators have a two-level deep prototype chain. (TODO: Why?)
+<2> generators have an API of two methods: `next` and `throw`.
+<3> generators are instances of GeneratorFunction constructors thus with the normal caveates of `this` on its methods.
 
-Continuing; In order to return said Generator argument we must execute two more procedures. First we must invoke `generator.next()` to both at once "advance" the generator (mutative, more on this later) whilst returning a "generated container value" (hereafter referred to as `container`). Then, second, we must read the value from the property `container.value` which will finally contain said Generator argument.
+Lets explore these facts a bit more.
 
-1. **First Procedure**
+A `generator` is an instances of `GeneratorFunction`. We can explicitly demonstrate this fact like so:
+
+[source,js]
+----
+let GeneratorFunction = Object.getPrototypeOf(function*(){}).constructor
+IdentityGenerator instanceof GeneratorFunction
+----
+----
+> true
+----
+
+Since a generator is an instance its methods are `this` sensitive. We can explicitly demonstrate this fact like so:
+
+[source,js]
+----
+let generator = IdentityGenerator('Apple')
+generator.next()
+----
+----
+> { value: 'Apple', done: true }
+----
+[source,js]
+----
+let next = generator.next
+next()
+----
+----
+> TypeError: Method [Generator].prototype.next called on incompatible receiver undefined
+----
+----
+let next = generator.next(generator)
+next()
+----
+----
+> { value: 'Apple', done: true }
+----
+
+
+
+### Meet the Container
+
+With an instance in hand we may now use its API to accomplish our function (which is, remember, returning our argument).
+
+There are two procedures we must execute. First we must invoke the `.next()` method to both at once "advance" the generator (mutative, more on this later) whilst returning a "generated container value" (hereafter referred to as a `container`). Then we must get the inner-value from the `container`.
+
+1. **Generate a Container (and advance the generator)**
 
 [source,js]
 ----
@@ -77,29 +134,32 @@ let container = generator.next()
      configurable: true } }
 ----
 
-2. **Second Procedure**
+2. **Extract the Value**
 
 [source,js]
 ----
-// ...
 container.value
 ----
 ----
 Apple
 ----
 
-So, to recap from the beginning:
-
+In sum, from the top:
 
 [source,js]
 ----
-//                                  (throw)             [done ]
-// Generator    ->         generator(next ) -> container[value]
-   GenIdentity  ('Apple')          .next   ()          .value
+// Construct a generator.       > Generate a conatiner,      >
+//                              > and advance the generator. > Read the value from the container.
+
+   IdentityGenerator('Apple')     .next()                      .value
 ----
 ----
 Apple
 ----
+
+
+
+### Semantics
 
 We now have a generated value which is a container. You can see `'Apple'` at `container.value`.  The container however has another Boolean property `done`. This reflects the state of the generator; `true` means the generator has no more values to produce, `false` means the opposite. This means `generator.next()` is not a pure function. Its execution does two things: return a conatiner value (as we saw) and mutate the state of the generator that `next` is being invoked upon.
 
