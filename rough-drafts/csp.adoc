@@ -1,0 +1,44 @@
+---
+date: 2015-02-23T23:18:32-05:00
+title: Notes on CSP
+---
+
+
+
+Notes on CSP.
+
+https://www.youtube.com/watch?v=AhxcGGeh5ho
+
+Brought to the mainstream by Go, copied by Core.Async.
+
+"Go Blocks" create the illusion of synchronous flow.
+
+A Go Block always returns a channel
+
+Terminology of operations for write and read is "Put" and "Take"
+
+Semantics of CSP state that if something is written there must be a reader.
+
+If a writer writes without a reader, or a reader reads without a writer, then the Go block is suspending until a such a time that there is a reader or writer (respectively).
+
+This fact is considered fundamentally important. Its how Go works, and is how the original CSP model was defined.
+
+David Nolen says put immutable values on channels to avoid data races which is a problem in Golang.
+
+Since channels are first class you may put channels onto channels.
+
+For instance `fan-in` in core.async (aka merge) accepts many channels and returns one channel. All the given channels are put onto this one channel which help use-cases where you only want to read from a single channel.
+
+CSP is push-and-pull based. Therefore it is possible to create generators wherein a function just streams out values that it itself produces! No IO source, just in-process computation.
+
+This can be used to achieve throttling. For instance an `interval` generator may only supply values after a minimum timeout on each loop. Given the right composition this `interval` channel could be combined with an e.g. `scroll event` channel causing the latter to be throttled by the timing of the former.
+
+
+Go blocks can be used to create mini private event loops
+
+
+Errors in Go Blocks have regular error handling via `try catch`. This means that stack traces are good in the sense that the source of the error is at the top of the stack.
+
+CSP has a problem called `deadlock` wherein a reader that inadvertantly reads something that will never have a writer.
+
+Clojure has a standard library around core.async for pub/sub, pause/resume, merge, etc.

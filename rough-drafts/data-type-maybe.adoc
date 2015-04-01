@@ -1,0 +1,23 @@
+---
+date: 2015-02-23T23:18:32-05:00
+title: What is the Maybe Monad?
+---
+
+
+This essay will explore the Maybe Monad.
+
+As the [Haskell](https://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Maybe.html) documentation states:
+
+> The Maybe type encapsulates an optional value. A value of type `Maybe a` either contains a value [...] or it is empty. Using Maybe is a good way to deal with errors or exceptional cases [...].
+
+Examples of "optional values" are:
+
+- Establishing a TCP socket connection. The server may have crashed, the client may have no internet connection, etc.
+- Reading the file names in a folder. The folder may have been deleted, unix folder permissions may prohibt non-sudo access, etc.
+
+We can also model basic human ineraction processes such as:
+
+- A confirmation prompt. The OS confirms that the user really wants to empty their garbage, close a window that has unsaved text, etc.
+
+Languages that have `Maybe` available in their standard library include [`Haskell`](https://hackage.haskell.org/package/base-4.7.0.2/docs/Data-Maybe.html) and `Scala`. Other languages have it available in userland including `JavaScript`.
+
