@@ -1,0 +1,154 @@
+# Typing JavaScript
+:toc: macro
+
+toc::[]
+
+
+## Introduction
+
+TODO
+
+## Currying
+
+A few months after Flowtype was announced I [created an issue](https://github.com/facebook/flow/issues/172) asking about how currying might be statically typed. Currying is the simple idea that a fixed-parameter-length function will continue returning functions of fewer parameters (as arguments are supplied) until such a time that all arguments are provided and the actually specified function can execute.
+
+For example Consider this interaction with Haskell via `ghci`:
+
+```
+> ghci
+Prelude> :t (+)
+(+) :: Num a => a -> a -> a
+Prelude> (+) 1 2
+3
+Prelude> let add1 = (+) 1
+Prelude> :t add1
+add1 :: Num a => a -> a
+Prelude> add1 2
+3
+```
+
+We can see that `add1` is derived from invoking the `addition` function with too few arguments. In JavaScript this would return `NaN`:
+
+```
+> node
+> 1 + undefined
+NaN
+```
+
+But because functions are curried in Haskell we get back something more useful, a specialized version of `addition` that just adds `1` to a given value.
+
+
+
+### Typed currying in JavaScript
+
+Beggining with the following program we will try to use `Flow` and a currying utility to match Haskell in JavaScript.
+
+```
+let log = console.log
+
+function ADD (a: number, b: number): number {
+  return a + b
+}
+```
+
+### First Attempt
+
+@samwgoldman [proposed](https://github.com/facebook/flow/issues/172#issuecomment-101760087) this currying function:
+
+```
+function curry2<A,B,C> (f: (x:A, y:B) => C): (x:A) => (y:B) => C {
+  return (x) => (y) => f(x,y)
+}
+```
+
+I used it like so with the following result:
+
+```
+let add = curry2(ADD)
+
+log(`add(1)(2) = ${add(1)(2)}`)
+log(`add(1, 2) = ${add(1, 2)}`)
+log(add(1, '2'))
+log(add(1)('2'))
+```
+```
+> babel-node typing-javascript.js && babel --blacklist flow < typing-javascript.js | flow check-contents
+
+add(1)(2) = 3
+add(1, 2) = function (y) {
+      return f(x, y);
+    }
+add(1)('2') = 12
+add(1, '2') = function (y) {
+      return f(x, y);
+    }
+
+-:21:33,35: string
+This type is incompatible with
+  -:5:28,33: number
+
+Found 1 error
+```
+
+There are multiple problems with this result.
+
+1. The currying implementation is wrong because it forces arguments to be given one at a time. To be correct it must accept all, some, or one argument at any execution iteration.
+
+2. `Flow` was was unable to detect that `add(1, '2')` was a type error. This is (presumably) because `'2'` was a discarded argument given point one above. In other words, of the arguments `1` and `'2'` only `1` is actually used since the flawed `curry` implementation only knows to consume one argument at a time.
+
+
+
+### Second Attempt
+
+The `curry2` implementation must be made correct, at which point we can try typing it again. Here is a simple correct implementation of `curry2` followed by an example result:
+
+```
+function curry2 (f) {
+  function iteration (argsOld) {
+    function argsCollector (...argsNew) {
+      let argsNow = argsOld.concat(argsNew)
+      if (argsNow.length >= 2) return f(...argsNow)
+      return iteration(argsNow)
+    }
+    return argsCollector
+  }
+  return iteration([])
+}
+```
+```
+> babel-node typing-javascript.js
+
+add(1)(2) = 3
+add(1, 2) = 3
+```
+
+If we introduce `Flow` now, relying on implicit typing, type errors are erroneously raised: 
+
+```
+> babel-node typing-javascript.js && babel --blacklist flow < typing-javascript.js | flow check-contents
+
+add(1)(2) = 3
+add(1, 2) = 3
+
+-:36:39,85: rest array of element of arguments
+This type is incompatible with
+  -:7:17,22: number
+
+-:36:39,85: apply call of method apply
+Too few arguments (expected default/rest parameters in function)
+  -:44:19,21: function
+
+-:46:22,30: function call
+Function cannot be called on
+  -:7:37,42: number
+
+Found 3 errors
+```
+
+So, how can this be correctly typed with `Flow` so that, for example, neither `add(1, '2')` or `add(1)('2')` type check but the above does?
+
+```
+TODO
+```
+
+This article is a work in progress. I also continue to participate in the discussion at https://github.com/facebook/flow/issues/172.
