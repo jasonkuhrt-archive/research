@@ -39,11 +39,11 @@ But because functions are curried in Haskell we get back something more useful, 
 
 
 
-### Typed currying in JavaScript
+## Currying in JavaScript (that is typed)
 
 Beggining with the following program we will try to use `Flow` and a currying utility to match Haskell in JavaScript.
 
-```
+```js
 let log = console.log
 
 function ADD (a: number, b: number): number {
@@ -53,9 +53,9 @@ function ADD (a: number, b: number): number {
 
 ### First Attempt
 
-@samwgoldman [proposed](https://github.com/facebook/flow/issues/172#issuecomment-101760087) this currying function:
+link:https://github.com/samwgoldman[@samwgoldman] link:https://github.com/facebook/flow/issues/172#issuecomment-101760087[proposed] this currying implementation:
 
-```
+```js
 function curry2<A,B,C> (f: (x:A, y:B) => C): (x:A) => (y:B) => C {
   return (x) => (y) => f(x,y)
 }
@@ -63,13 +63,13 @@ function curry2<A,B,C> (f: (x:A, y:B) => C): (x:A) => (y:B) => C {
 
 I used it like so with the following result:
 
-```
+```js
 let add = curry2(ADD)
 
 log(`add(1)(2) = ${add(1)(2)}`)
 log(`add(1, 2) = ${add(1, 2)}`)
-log(add(1, '2'))
-log(add(1)('2'))
+log(`add(1)('2') = ${add(1)('2')}`)
+log(`add(1, '2') = ${add(1, '2')}`)
 ```
 ```
 > babel-node typing-javascript.js && babel --blacklist flow < typing-javascript.js | flow check-contents
@@ -102,7 +102,7 @@ There are multiple problems with this result.
 
 The `curry2` implementation must be made correct, at which point we can try typing it again. Here is a simple correct implementation of `curry2` followed by an example result:
 
-```
+```js
 function curry2 (f) {
   function iteration (argsOld) {
     function argsCollector (...argsNew) {
