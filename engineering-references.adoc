@@ -1,0 +1,11 @@
+# Engineering References
+
+:toc: macro
+
+toc::[]
+
+
+
+### Performance in JavaScript
+
+- https://github.com/cujojs/most/issues/137[Scrappy discussion between several authors of performant JS libraries.]
