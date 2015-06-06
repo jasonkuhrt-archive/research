@@ -9,3 +9,6 @@ toc::[]
 ### Performance in JavaScript
 
 - https://github.com/cujojs/most/issues/137[Scrappy discussion between several authors of performant JS libraries.]
+
+### https://www.youtube.com/watch?v=4L3cYhfSUZs
+
