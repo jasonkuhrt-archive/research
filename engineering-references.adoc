@@ -8,7 +8,9 @@ toc::[]
 
 ### Performance in JavaScript
 
-- https://github.com/cujojs/most/issues/137[Scrappy discussion between several authors of performant JS libraries.]
+* https://github.com/cujojs/most/issues/137[Scrappy discussion between several authors of performant JS libraries.]
 
-### https://www.youtube.com/watch?v=4L3cYhfSUZs
+### Unorganized
 
+* https://www.youtube.com/watch?v=4L3cYhfSUZs[Presentation on Reactive Systems]
+* https://github.com/ctjhoa/rust-learning[Collection of links related to Rust]
