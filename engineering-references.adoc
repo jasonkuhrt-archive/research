@@ -14,3 +14,6 @@ toc::[]
 
 * https://www.youtube.com/watch?v=4L3cYhfSUZs[Presentation on Reactive Systems]
 * https://github.com/ctjhoa/rust-learning[Collection of links related to Rust]
+
+### IoT
+* https://github.com/EricssonResearch/calvin-base[A platform that provides a highly abstracted application-layer for IoT.]
