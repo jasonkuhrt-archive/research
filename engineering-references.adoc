@@ -15,5 +15,11 @@ toc::[]
 * https://www.youtube.com/watch?v=4L3cYhfSUZs[Presentation on Reactive Systems]
 * https://github.com/ctjhoa/rust-learning[Collection of links related to Rust]
 
+### Learning Haskell
+
+https://github.com/tonymorris/course ::
+A course that was recommended to me on `#haskell`. Its fairly advanced and considered difficult for self-learners and challenging for even those that know Haskell relatively well.
+
+
 ### IoT
 * https://github.com/EricssonResearch/calvin-base[A platform that provides a highly abstracted application-layer for IoT.]
